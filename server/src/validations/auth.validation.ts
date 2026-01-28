@@ -24,7 +24,7 @@ export const userCoreSchema =
             .string()
             .min(10, {message : "Phone number must be at least 10 numbers"})
             .max(14, {message : "Phone number Maximum 14 numbers"})
-            .regex(/^[1-9]\d{10,14}$/, {message : "Invalid Phone numbers Format"}),
+            .regex(/^\+?[1-9]\d{10,14}$/, {message : "Invalid Phone numbers Format"}),
     })
 
 export const registerSchema = z.object({
