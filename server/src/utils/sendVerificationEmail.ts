@@ -1,4 +1,4 @@
-const transporter = require('./mailer');
+import {transporter} from "../config/nodemailer.config.js";
 import {formatEmail} from "./formatEmail.js";
 
 export async function sendVerificationEmail(token:string , body:string) {
