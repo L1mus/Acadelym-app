@@ -19,7 +19,7 @@ export const userVerification = async (id : number, token : string, body : any) 
             const result = await recordUserToken(id)
 
             if (!result){
-                throw new AppError(404, `User not found`);
+               throw new AppError(404, `User not found`);
             }
 
             const record = result.rows[0];
