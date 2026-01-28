@@ -6,7 +6,7 @@ import {TypeToken, UserTokenEntity} from "../models/userTokens.model.js";
 export const createUser = ( body:CreateUserDTO , hashPassword: string,) => {
     const sqlQuery = `
         INSERT INTO users (name, email, password, gender, phone)
-        VALUES ($1, $2, $3, $4, $5,$6)
+        VALUES ($1, $2, $3, $4, $5)
             RETURNING *;
     `;
     const values = [body.name, body.email, hashPassword, body.gender,body.phone];
