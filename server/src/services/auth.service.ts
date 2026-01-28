@@ -2,7 +2,7 @@ import {duplicateCheck,createUser,createTokenUser} from "../repositories/user.re
 import {AppError} from "../utils/AppError.js";
 import {generateHash} from "../utils/hashPassword.js";
 import {sendVerificationEmail} from "../utils/sendVerificationEmail.js";
-import {tokenVerification} from "../utils/tokenVerification.js";
+import { generateVerificationToken } from "../utils/tokenVerification.js";
 
 
 /*
@@ -22,22 +22,37 @@ import {tokenVerification} from "../utils/tokenVerification.js";
      buat content kirim link ke email user: https://aplikasiku.com/verify_email={token_tadi}
  */
 
-export const registerService = async (body : any) => {
+export const registerService = async (body: any) => {
     try {
-        const token = tokenVerification
-        const isDuplicate = await duplicateCheck(body);
-        console.log(isDuplicate);
-        if (isDuplicate) {
-            throw new AppError(401, "User already exists!");
+        const token = generateVerificationToken();
+
+        const checkResult = await duplicateCheck(body);
+        if ((checkResult.rowCount ?? 0) > 0) {
+            throw new AppError(409, "Email or Phone number already registered!");
         }
-        const hash : string = await generateHash(body.password);
-        await createUser(body,hash);
-        await createTokenUser(body.id,token,'verify_email');
-        await sendVerificationEmail(token,body.email);
-    }
-    catch (error) {
+
+        const hash: string = await generateHash(body.password);
+        const newUserResult = await createUser(body, hash);
+
+        if (!newUserResult.rows[0]) {
+            throw new AppError(500, "Failed to create user");
+        }
+
+        const newUser = newUserResult.rows[0];
+
+        await createTokenUser(newUser.id, token, 'verify_email');
+
+        await sendVerificationEmail(token, body.email);
+
+        return newUser;
+
+    } catch (error) {
+        console.error("SERVICE ERROR:", error);
+
+        if (error instanceof AppError) {
+            throw error;
+        }
         throw new AppError(500, "Internal Server Error");
     }
-
 }
 
