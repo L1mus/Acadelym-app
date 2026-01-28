@@ -1,11 +1,11 @@
-const nodemailer = require("nodemailer");
+import nodemailer from "nodemailer";
 import dotenv from 'dotenv';
 
 dotenv.config();
 
 export const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
-    port: process.env.SMTP_PORT,
+    port: Number(process.env.SMTP_PORT),
     secure: true,
     auth: {
         user: process.env.SMTP_USER,
@@ -13,7 +13,7 @@ export const transporter = nodemailer.createTransport({
     },
 });
 
-transporter.verify((error : any) => {
+transporter.verify((error, _success) => {
     if (error) {
         console.error("SMTP Connection Failed:", error);
     } else {
