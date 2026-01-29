@@ -31,5 +31,5 @@ export const registerSchema = z.object({
     body: userCoreSchema,
 });
 
-export type RegisterRequest = z.infer<typeof registerSchema>;
+export type RegisterRequestDTO = z.infer<typeof registerSchema>;
 export type UserPayload = z.infer<typeof userCoreSchema>;

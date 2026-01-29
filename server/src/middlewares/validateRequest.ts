@@ -28,7 +28,7 @@ export const validationRequest = (schema: AnyZodObject) => {
                 query: req.query,
                 params : req.params,
             })
-            next();
+            return next();
         } catch(error){
             if(error instanceof ZodError){
                 const formatedErrors = error.errors.map(error => ({
@@ -39,7 +39,8 @@ export const validationRequest = (schema: AnyZodObject) => {
                 console.log(formatedErrors[0].path)
                 return res.status(400).json({errors: formatedErrors})
             }
+            console.error("Validation Middleware Error:", error);
+            return res.status(500).json({message:"Internal Server Error"})
         }
-        return res.status(500).json({message:"Internal Server Error"})
     }
 }

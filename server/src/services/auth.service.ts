@@ -1,8 +1,9 @@
-import {duplicateCheck,createUser,createTokenUser} from "../repositories/user.repository.js";
+import {findCountryIdByPhoneNumber,duplicateCheck,createUser,createTokenUser} from "../repositories/user.repository.js";
 import {AppError} from "../utils/AppError.js";
 import {generateHash} from "../utils/hashPassword.js";
 import {sendVerificationEmail} from "../utils/sendVerificationEmail.js";
 import { generateVerificationToken } from "../utils/tokenVerification.js";
+
 
 
 /*
@@ -31,8 +32,15 @@ export const registerService = async (body: any) => {
             throw new AppError(409, "Email or Phone number already registered!");
         }
 
+        const countryResult = await findCountryIdByPhoneNumber(body.phone);
+        if (!countryResult.rows[0]) {
+            throw new AppError(400, "Invalid country code");
+        }
+
+        const countryId = countryResult.rows[0].id;
+
         const hash: string = await generateHash(body.password);
-        const newUserResult = await createUser(body, hash);
+        const newUserResult = await createUser(body, hash, countryId);
 
         if (!newUserResult.rows[0]) {
             throw new AppError(500, "Failed to create user");

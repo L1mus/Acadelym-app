@@ -3,13 +3,26 @@ import {UserEntity, UserVerificationStatus} from "../models/users.model.js";
 import {CreateUserDTO, DuplicateUserDTO, UpdateUserDTO} from "../types/user.type.js";
 import {TypeToken, UserTokenEntity} from "../models/userTokens.model.js";
 
-export const createUser = ( body:CreateUserDTO , hashPassword: string,) => {
+
+export const findCountryIdByPhoneNumber = async (fullPhoneNumber: string) => {
     const sqlQuery = `
-        INSERT INTO users (name, email, password, gender, phone)
-        VALUES ($1, $2, $3, $4, $5)
+        SELECT id, phone_code
+        FROM countries
+        WHERE $1 LIKE phone_code || '%'
+        ORDER BY LENGTH(phone_code) DESC
+            LIMIT 1;
+    `;
+    const values = [fullPhoneNumber];
+    return pool.query(sqlQuery, values);
+}
+
+export const createUser = ( body:CreateUserDTO , hashPassword : string, countryId : number) => {
+    const sqlQuery = `
+        INSERT INTO users (name, email, password, gender, phone,country_id)
+        VALUES ($1, $2, $3, $4, $5,$6)
             RETURNING *;
     `;
-    const values = [body.name, body.email, hashPassword, body.gender,body.phone];
+    const values = [body.name, body.email, hashPassword, body.gender, body.phone, countryId];
     return pool.query<UserEntity>(sqlQuery,values);
 }
 
@@ -37,7 +50,7 @@ export const duplicateCheck = async (body:DuplicateUserDTO) => {
 
 export const  createTokenUser = async (userId : number, token : string , type : TypeToken) => {
     const sqlQuery = `INSERT INTO user_tokens (user_id, token, type, expires_at) VALUES ($1, $2, $3, NOW() + INTERVAL '1 hours')`
-    const values = [userId,token, type];
+    const values = [userId, token, type];
     return pool.query<UserTokenEntity>(sqlQuery,values);
 }
 
