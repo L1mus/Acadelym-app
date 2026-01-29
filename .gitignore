@@ -1,0 +1,10 @@
+/.idea
+server/.env
+server/.env.local
+server/node_modules
+server/coverage
+server/testAPI
+server/dist/
+
+server/build/
+server/out/
