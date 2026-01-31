@@ -27,9 +27,19 @@ export const userCoreSchema =
             .regex(/^\+?[1-9]\d{10,14}$/, {message : "Invalid Phone numbers Format"}),
     })
 
+
+
 export const registerSchema = z.object({
     body: userCoreSchema,
 });
 
+export const loginSchema = z.object({
+    body: userCoreSchema.pick({
+        email: true,
+        password: true,
+    }),
+})
+
 export type RegisterRequestDTO = z.infer<typeof registerSchema>;
+export type LoginRequestDTO = z.infer<typeof loginSchema>;
 export type UserPayload = z.infer<typeof userCoreSchema>;

@@ -1,6 +1,11 @@
 /*
     Todo pseeudocode
     Url verifikasi di klik oleh client
+    client di arahkan membuka halaman baru di bagian frondend
+    frontend akan mengirim query berupa token
+    menerima request query dari client
+    cari user berdasarkan token tersebut
+    validasi
     cek record dari token yang sudah di kirim apa kah ada ?
     jika tidak kirim Error 404 Request not found atau token sudah di gunakan atau tidak valid
     cek jika url token tersebut sudah kadaluarsa atau belum?
@@ -10,33 +15,33 @@
     seperti delete column token
  */
 
-import {recordUserToken, updateUser, updateUserToken} from "../repositories/user.repository.js";
-import {AppError} from "../utils/AppError.js";
+import { findTokenByValue, updateUser, deleteToken } from "../repositories/user.repository.js";
+import { AppError } from "../utils/AppError.js";
 
-export const userVerification = async (id : number, token : string, body : any) =>{
+export const verifyEmailService = async (token: string) => {
     try {
-            const now = new Date()
-            const result = await recordUserToken(id)
+        const tokenResult = await findTokenByValue(token);
 
-            if (!result){
-               throw new AppError(404, `User not found`);
-            }
+        if (tokenResult.rowCount === 0) {
+            throw new AppError(400, "Invalid or expired verification token");
+        }
 
-            const record = result.rows[0];
+        const tokenRecord = tokenResult.rows[0];
+        const now = new Date();
 
-            if (record.token !== token){
-                throw new AppError(404, `Token has been used or is invalid`);
-            }
+        if (now > new Date(tokenRecord.expires_at)) {
+            await deleteToken(tokenRecord.id);
+            throw new AppError(400, "Token expired, please request a new one");
+        }
 
-            if (now > record.expires_at){
-                await updateUser(id,body,"unverified")
-                throw new AppError(401, `Token expired`);
-            }
+        await updateUser(tokenRecord.user_id, {} as any, "verified");
 
-            await updateUserToken(id)
-            await updateUser(id,body,"verified")
-    }
-    catch(error){
-        throw new AppError(404, `User verification failed`);
+        await deleteToken(tokenRecord.id);
+
+        return { message: "Email verified successfully" };
+
+    } catch (error) {
+        if (error instanceof AppError) throw error;
+        throw new AppError(500, "Verification process failed");
     }
 }

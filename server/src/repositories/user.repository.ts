@@ -16,6 +16,12 @@ export const findCountryIdByPhoneNumber = async (fullPhoneNumber: string) => {
     return pool.query(sqlQuery, values);
 }
 
+export const findUserByEmail = async (email: string) => {
+    const sqlQuery = `SELECT * FROM users WHERE email = $1 LIMIT 1;`;
+    const values = [email];
+    return pool.query<UserEntity>(sqlQuery, values);
+}
+
 export const createUser = ( body:CreateUserDTO , hashPassword : string, countryId : number) => {
     const sqlQuery = `
         INSERT INTO users (name, email, password, gender, phone,country_id)
@@ -54,18 +60,14 @@ export const  createTokenUser = async (userId : number, token : string , type : 
     return pool.query<UserTokenEntity>(sqlQuery,values);
 }
 
-export const recordUserToken = async (id : number) => {
-    const sqlQuery = `SELECT token, expires_at FROM user_tokens WHERE id = $1 LIMIT 1`;
-    const values = [id];
-    return pool.query<UserTokenEntity>(sqlQuery,values);
+export const findTokenByValue = async (token: string) => {
+    const sqlQuery = `SELECT * FROM user_tokens WHERE token = $1 AND type = 'verify_email' LIMIT 1`;
+    const values = [token];
+    return pool.query<UserTokenEntity>(sqlQuery, values);
 }
 
-export const updateUserToken = async (id : number) =>{
-    const sqlQuery = `UPDATE user_tokens
-                      SET
-                          token = NULL,
-                          expires_at = NULL
-                      WHERE id = $1;`;
+export const deleteToken = async (id: number) => {
+    const sqlQuery = `DELETE FROM user_tokens WHERE id = $1`;
     const values = [id];
-    return pool.query<UserTokenEntity>(sqlQuery,values);
+    return pool.query(sqlQuery, values);
 }

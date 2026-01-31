@@ -1,13 +1,20 @@
-import {findCountryIdByPhoneNumber,duplicateCheck,createUser,createTokenUser} from "../repositories/user.repository.js";
+import {
+    findCountryIdByPhoneNumber,
+    duplicateCheck,
+    createUser,
+    createTokenUser,
+    findUserByEmail
+} from "../repositories/user.repository.js";
 import {AppError} from "../utils/AppError.js";
-import {generateHash} from "../utils/hashPassword.js";
+import {checkPasswordHash, generateHash} from "../utils/authPassword.js";
 import {sendVerificationEmail} from "../utils/sendVerificationEmail.js";
 import { generateVerificationToken } from "../utils/tokenVerification.js";
+import { LoginRequestDTO } from "../validations/auth.validation.js";
 
 
 
 /*
-    Todo Pseudocode
+    Todo Pseudocode Register
      ->cek duplikasi database
      jika data di temukan lempar error , email atau no.hanphone sudah terdaftar
      ->lakukan hashing pada password menggunalakan library bcrypt
@@ -60,6 +67,46 @@ export const registerService = async (body: any) => {
         if (error instanceof AppError) {
             throw error;
         }
+        throw new AppError(500, "Internal Server Error");
+    }
+}
+
+
+/*
+    Todo Pseudocode Login
+    cari user lakukan query ke data base
+    jika user kosong/null berhenti dan lempar error "invalid Credential/Email atau password salah"
+    cek password bandingkan password yang di input dengan password yang di hash di database
+    jika tidak cocok lepar stop error "invalid Credential/Email atau password salah"
+    jika seluruhnya benar kirim JWT berisi userid dan role
+ */
+
+
+export const loginService = async (body: LoginRequestDTO) => { // Gunakan Type DTO
+    try {
+        const userResult = await findUserByEmail(body.body.email);
+
+        if (userResult.rowCount === 0) {
+            throw new AppError(400, "Incorrect email or password");
+        }
+
+        const user = userResult.rows[0];
+
+        const isPasswordValid = await checkPasswordHash(body.body.password, user.password);
+
+        if (!isPasswordValid) {
+            throw new AppError(400, "Incorrect email or password");
+        }
+
+        if (user.verification_status !== 'verified') {
+           throw new AppError(403, "Please verify your email first.");
+        }
+
+        return user;
+
+    } catch (error) {
+        console.error("SERVICE ERROR:", error);
+        if (error instanceof AppError) throw error;
         throw new AppError(500, "Internal Server Error");
     }
 }

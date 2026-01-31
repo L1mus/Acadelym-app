@@ -15,12 +15,17 @@ const envSchema = z.object({
     JWT_EXPIRES_IN: z.string().default('7d'),
     RATE_LIMIT_WINDOW_MS: z.string().transform(Number).default('900000'),
     RATE_LIMIT_MAX_REQUESTS: z.string().transform(Number).default('100'),
+    SMTP_HOST:z.string(),
+    SMTP_PORT:z.string().transform(Number).default('465'),
+    SMTP_USER:z.string(),
+    SMTP_PASS:z.string(),
+    APP_URL:z.string()
 });
 
 const parsed = envSchema.safeParse(process.env);
 
 if (!parsed.success) {
-    console.error('❌ Invalid environment variables:', parsed.error.flatten().fieldErrors);
+    console.error('Invalid environment variables:', parsed.error.flatten().fieldErrors);
     throw new Error('Invalid environment variables');
 }
 

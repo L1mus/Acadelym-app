@@ -1,6 +1,8 @@
+import {env} from "../config/env.js";
+
 export const formatEmail = (userEmail:string, verificationUrl : string) : object => {
     return {
-        from: `"Acadelym" <${process.env.SMTP_USER}>`,
+        from: `"Acadelym" <${env.SMTP_USER}>`,
         to: userEmail,
         subject: 'Verify Your Account',
         html: `

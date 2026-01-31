@@ -21,7 +21,7 @@ export const securityHeaders = helmet({
 
 export const corsOptions = cors({
     origin: env.NODE_ENV === 'production'
-        ? ['https://yourdomain.com']
+        ? ['https://acadelym.com']
         : ['http://localhost:3000', 'http://localhost:5173'],
     credentials: true,
     optionsSuccessStatus: 200,
