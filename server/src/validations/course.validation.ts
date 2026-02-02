@@ -15,6 +15,7 @@ export const coursesSchema =
         search:z
             .string()
             .trim()
+            .transform(val => val || undefined)
             .optional(),
         category_id:z
             .coerce.number()
