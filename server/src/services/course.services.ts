@@ -15,7 +15,7 @@ export const getAllCoursesService = async (params: CourseQueryDTO) => {
     const result = await getAllCourses(params);
     const rows = result.rows;
 
-    const totalRecords = rows.length > 0 ? rows[0].total_records : 0;
+    const totalRecords = rows.length > 0 ? parseInt(rows[0].total_records) : 0;
 
     const toResponseCourseDTO = rows.map((row: any) => {
         const { total_records, ...courseData } = row;
@@ -28,9 +28,9 @@ export const getAllCoursesService = async (params: CourseQueryDTO) => {
         data: toResponseCourseDTO,
         meta: {
             total_records: totalRecords,
-            page: params.page,
+            page: Number(params.page),
             total_pages: totalPages,
-            limit: params.limit,
+            limit: Number(params.limit),
             has_next_page: params.page < totalPages,
             has_prev_page: params.page > 1
         }

@@ -29,15 +29,11 @@ export const userCoreSchema =
 
 
 
-export const registerSchema = z.object({
-    body: userCoreSchema,
-});
+export const registerSchema = userCoreSchema
 
-export const loginSchema = z.object({
-    body: userCoreSchema.pick({
+export const loginSchema = userCoreSchema.pick({
         email: true,
         password: true,
-    }),
 })
 
 export type RegisterRequestDTO = z.infer<typeof registerSchema>;

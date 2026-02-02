@@ -9,8 +9,8 @@ import {AppError} from "../utils/AppError.js";
 import {checkPasswordHash, generateHash} from "../utils/authPassword.js";
 import {sendVerificationEmail} from "../utils/sendVerificationEmail.js";
 import { generateVerificationToken } from "../utils/tokenVerification.js";
-import { LoginRequestDTO } from "../validations/auth.validation.js";
-import {UserPayload} from "../validations/auth.validation.js";
+import {LoginRequestDTO, UserPayload} from "../validations/auth.validation.js";
+import { pool } from "../config/database.js";
 
 
 
@@ -32,7 +32,9 @@ import {UserPayload} from "../validations/auth.validation.js";
  */
 
 export const registerService = async (body: UserPayload) => {
+    const client = await pool.connect();
     try {
+        await client.query('BEGIN');
         const token = generateVerificationToken();
 
         const checkResult = await duplicateCheck(body);
@@ -48,8 +50,8 @@ export const registerService = async (body: UserPayload) => {
         const countryId = countryResult.rows[0].id;
 
         const hash: string = await generateHash(body.password);
-        const newUserResult = await createUser(body, hash, countryId);
 
+        const newUserResult = await createUser(body, hash, countryId);
         if (!newUserResult.rows[0]) {
             throw new AppError(500, "Failed to create user");
         }
@@ -58,17 +60,22 @@ export const registerService = async (body: UserPayload) => {
 
         await createTokenUser(newUser.id, token, 'verify_email');
 
+        await client.query('COMMIT');
+
         await sendVerificationEmail(token, body.email);
 
         return newUser;
 
     } catch (error) {
+        await client.query('ROLLBACK');
         console.error("SERVICE ERROR:", error);
 
         if (error instanceof AppError) {
             throw error;
         }
         throw new AppError(500, "Internal Server Error");
+    } finally {
+        client.release();
     }
 }
 
@@ -85,7 +92,7 @@ export const registerService = async (body: UserPayload) => {
 
 export const loginService = async (body: LoginRequestDTO) => { // Gunakan Type DTO
     try {
-        const userResult = await findUserByEmail(body.body.email);
+        const userResult = await findUserByEmail(body.email);
 
         if (userResult.rowCount === 0) {
             throw new AppError(400, "Incorrect email or password");
@@ -93,7 +100,7 @@ export const loginService = async (body: LoginRequestDTO) => { // Gunakan Type D
 
         const user = userResult.rows[0];
 
-        const isPasswordValid = await checkPasswordHash(body.body.password, user.password);
+        const isPasswordValid = await checkPasswordHash(body.password, user.password);
 
         if (!isPasswordValid) {
             throw new AppError(400, "Incorrect email or password");

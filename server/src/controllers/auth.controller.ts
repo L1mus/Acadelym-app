@@ -2,8 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import {loginService, registerService} from "../services/auth.service.js";
 import {UserEntity} from "../models/users.model.js";
 import {ResponseUserDTO} from "../types/user.type.js";
-import {loginSchema, registerSchema, UserPayload} from "../validations/auth.validation.js";
-import {LoginRequestDTO} from "../validations/auth.validation.js";
+import {LoginRequestDTO, RegisterRequestDTO} from "../validations/auth.validation.js";
 import {AppError} from "../utils/AppError.js";
 import {verifyEmailService} from "../services/userVerification.service.js";
 import jwt from "jsonwebtoken";
@@ -16,18 +15,7 @@ const toResponseDTO = (user: UserEntity): ResponseUserDTO => {
 
 export const register = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const validationResult = registerSchema.safeParse({ body: req.body });
-
-        if (!validationResult.success) {
-            res.status(400).json({
-                status: "fail",
-                message: "Validation Failed",
-                errors: validationResult.error.format(),
-            });
-            return;
-        }
-
-        const userData: UserPayload = validationResult.data.body;
+        const userData: RegisterRequestDTO = req.body;
 
         const newUser = await registerService(userData);
         const user = toResponseDTO(newUser);
@@ -64,23 +52,9 @@ export const verifyEmail = async (req: Request, res: Response, next: NextFunctio
 
 export const login = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const JWT_SECRET = env.JWT_SECRET;
+        const userData : LoginRequestDTO = req.body;
 
-        const validationResult = loginSchema.safeParse({body: req.body});
-
-        if (!validationResult.success) {
-            res.status(400).json({
-                status: "fail",
-                message: "Validation Failed",
-                errors: validationResult.error.format(),
-            });
-            return;
-        }
-
-        const userData : LoginRequestDTO = validationResult.data;
-        console.log(userData)
-
-        const userEntity = await loginService(userData);
+        const userEntity = await loginService(userData)
 
         const userResponse = toResponseDTO(userEntity);
 
@@ -90,7 +64,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
                 email: userEntity.email,
                 role: userEntity.role
             },
-            JWT_SECRET,
+            env.JWT_SECRET,
             { expiresIn: "1d" }
         );
 
