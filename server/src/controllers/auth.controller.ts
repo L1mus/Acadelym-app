@@ -2,7 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import {loginService, registerService} from "../services/auth.service.js";
 import {UserEntity} from "../models/users.model.js";
 import {ResponseUserDTO} from "../types/user.type.js";
-import {LoginRequestDTO, RegisterRequestDTO} from "../validations/auth.validation.js";
+import {loginSchema, registerSchema, UserPayload} from "../validations/auth.validation.js";
+import {LoginRequestDTO} from "../validations/auth.validation.js";
 import {AppError} from "../utils/AppError.js";
 import {verifyEmailService} from "../services/userVerification.service.js";
 import jwt from "jsonwebtoken";
@@ -15,8 +16,20 @@ const toResponseDTO = (user: UserEntity): ResponseUserDTO => {
 
 export const register = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const body : RegisterRequestDTO = req.body
-        const newUser = await registerService(body);
+        const validationResult = registerSchema.safeParse({ body: req.body });
+
+        if (!validationResult.success) {
+            res.status(400).json({
+                status: "fail",
+                message: "Validation Failed",
+                errors: validationResult.error.format(),
+            });
+            return;
+        }
+
+        const userData: UserPayload = validationResult.data.body;
+
+        const newUser = await registerService(userData);
         const user = toResponseDTO(newUser);
         res.status(201).json({
             success: true,
@@ -53,9 +66,21 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     try {
         const JWT_SECRET = env.JWT_SECRET;
 
-        const body: LoginRequestDTO = req.body;
+        const validationResult = loginSchema.safeParse({body: req.body});
 
-        const userEntity = await loginService(body);
+        if (!validationResult.success) {
+            res.status(400).json({
+                status: "fail",
+                message: "Validation Failed",
+                errors: validationResult.error.format(),
+            });
+            return;
+        }
+
+        const userData : LoginRequestDTO = validationResult.data;
+        console.log(userData)
+
+        const userEntity = await loginService(userData);
 
         const userResponse = toResponseDTO(userEntity);
 

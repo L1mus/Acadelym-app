@@ -37,9 +37,9 @@ export const updateUser = (id: number, body : UpdateUserDTO, verificationStatus 
         UPDATE users
         SET name = COALESCE($1, name),
             email = COALESCE($2, email),
-            password = COALESCE($3, address),
+            password = COALESCE($3, password),
             gender = COALESCE($4, gender),
-            phone = COALESCE($5, password),
+            phone = COALESCE($5, phone),
             verification_status = COALESCE($6, verification_status)
         WHERE id = $7
             RETURNING *;

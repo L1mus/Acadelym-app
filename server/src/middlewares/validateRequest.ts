@@ -23,21 +23,28 @@ import {Request,Response,NextFunction} from "express";
 export const validationRequest = (schema: AnyZodObject) => {
     return async (req: Request, res: Response, next: NextFunction) => {
         try{
-            await schema.parseAsync({
-                body : req.body,
+            const parsed = await schema.parseAsync({
+                body: req.body,
                 query: req.query,
-                params : req.params,
-            })
+                params: req.params,
+            });
+
+            req.body = parsed.body;
+            req.query = parsed.query;
+            req.params = parsed.params;
             return next();
         } catch(error){
             if(error instanceof ZodError){
                 const formatedErrors = error.errors.map(error => ({
                     message: error.message,
-                    path: error.path[1]
+                    field: error.path.slice(1).join('.') || error.path[1],
                 }))
                 console.log(formatedErrors[0].message)
-                console.log(formatedErrors[0].path)
-                return res.status(400).json({errors: formatedErrors})
+                console.log(formatedErrors[0].field)
+                return res.status(400).json({
+                    status: "fail",
+                    message: "Validation Error",
+                    errors: formatedErrors})
             }
             console.error("Validation Middleware Error:", error);
             return res.status(500).json({message:"Internal Server Error"})

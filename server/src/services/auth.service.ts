@@ -10,6 +10,7 @@ import {checkPasswordHash, generateHash} from "../utils/authPassword.js";
 import {sendVerificationEmail} from "../utils/sendVerificationEmail.js";
 import { generateVerificationToken } from "../utils/tokenVerification.js";
 import { LoginRequestDTO } from "../validations/auth.validation.js";
+import {UserPayload} from "../validations/auth.validation.js";
 
 
 
@@ -30,7 +31,7 @@ import { LoginRequestDTO } from "../validations/auth.validation.js";
      buat content kirim link ke email user: https://aplikasiku.com/verify_email={token_tadi}
  */
 
-export const registerService = async (body: any) => {
+export const registerService = async (body: UserPayload) => {
     try {
         const token = generateVerificationToken();
 
@@ -53,7 +54,7 @@ export const registerService = async (body: any) => {
             throw new AppError(500, "Failed to create user");
         }
 
-        const newUser = newUserResult.rows[0];
+        const newUser  = newUserResult.rows[0];
 
         await createTokenUser(newUser.id, token, 'verify_email');
 

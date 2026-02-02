@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { apiLimiter } from '../middlewares/security.js';
 import { pool } from '../config/database.js';
 import authRoutes from './auth.js';
+import courseRoutes from './course.js';
 
 
 const router = Router();
@@ -41,8 +42,8 @@ router.get('/', apiLimiter, (_req, res) => {
         documentation: '/api/docs', // TODO: Setup Swagger/OpenAPI
         endpoints: {
             health: 'GET /api/health',
-            // auth: 'POST /api/auth/login',
-            auth: 'POST /api/auth/register',
+            "auth/login": 'POST /api/auth/login',
+            "auth/register": 'POST /api/auth/register',
             // Tambahkan endpoints lainnya di sini
         },
         security: {
@@ -53,6 +54,7 @@ router.get('/', apiLimiter, (_req, res) => {
 });
 
 router.use('/auth', authRoutes);
+router.use('/courses', courseRoutes)
 
 // TODO: Import dan gunakan route modules
 // import userRoutes from './users.js';
