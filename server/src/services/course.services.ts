@@ -18,7 +18,7 @@ export const getAllCoursesService = async (params: CourseQueryDTO) => {
     const totalRecords = rows.length > 0 ? parseInt(rows[0].total_records) : 0;
 
     const toResponseCourseDTO = rows.map((row: any) => {
-        const { total_records, ...courseData } = row;
+        const { total_records,is_published,created_at,deleted_at,updated_at, ...courseData } = row;
         return courseData;
     });
 
