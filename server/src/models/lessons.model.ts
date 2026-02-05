@@ -1,3 +1,5 @@
+export type TypeLessons = 'video'|'document'|'pretest' | 'final_exam'
+
 export interface LessonsEntity {
     id: number;
     chapter_id: number;
@@ -7,4 +9,5 @@ export interface LessonsEntity {
     duration: number | null;
     created_at: Date;
     updated_at: Date | null;
+    type : TypeLessons
 }

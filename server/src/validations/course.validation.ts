@@ -37,19 +37,21 @@ export const coursesSchema =
             .or(emptyToUndefined),
 })
 
-export const courseDetailBySlugSchema = z.object({
-        slug:z
-            .string()
-            .min(3)
-            .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, { message: "Incorrect slug format (only lowercase letters, numbers, and hyphens)" })
-});
-
 export const courseQuerySchema = z.object({
     query : coursesSchema
 })
 
+export const courseDetailBySlugSchema = z.object({
+    slug:z
+        .string()
+        .min(3)
+        .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, { message: "Incorrect slug format (only lowercase letters, numbers, and hyphens)" })
+});
+
 export const courseDetailByIdSchema = z.object({
-        id: z.coerce.number().positive()
+        id: z
+            .coerce.number()
+            .positive()
 });
 
 
